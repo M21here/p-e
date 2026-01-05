@@ -323,13 +323,6 @@ PROTOCOL_MAPPING = {
         "category": "Launchpad",
         "manual_revenue": 492000000  # $492M annual
     },
-    "ethena": {
-        "defillama_slug": "ethena",
-        "coingecko_id": "ethena",
-        "name": "Ethena",
-        "chain": "Ethereum",
-        "category": "Stablecoin"
-    },
     "aave": {
         "defillama_slug": "aave",
         "coingecko_id": "aave",
