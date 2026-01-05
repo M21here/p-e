@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto P/E - Protocol Revenue Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --white: #ffffff;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+        
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 400;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .update-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--gray-100);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+        
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+        }
+        
+        .stat-icon.blue { background: rgba(37, 99, 235, 0.1); color: var(--primary); }
+        .stat-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .stat-icon.orange { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-change {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+        
+        /* Protocol Grid */
+        .protocols-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .protocol-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        
+        .protocol-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .protocol-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .protocol-title {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .protocol-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .protocol-meta {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .chain-badge, .category-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .chain-badge {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+        
+        .category-badge {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+        
+        .valuation-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .valuation-badge.undervalued {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .valuation-badge.fair {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .valuation-badge.expensive {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        /* Metrics */
+        .protocol-metrics {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .metric {
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .metric-value.large {
+            font-size: 1.5rem;
+        }
+        
+        /* P/S Ratio Highlight */
+        .ps-highlight {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .ps-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .ps-value {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        /* Chart Section */
+        .chart-section {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .chart-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            color: var(--gray-600);
+        }
+        
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .legend-dot.price { background: var(--primary); }
+        .legend-dot.ps { background: #8b5cf6; }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        .no-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 250px;
+            color: var(--gray-400);
+        }
+        
+        .no-data-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .no-data-text {
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        
+        /* Loading State */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            gap: 1.5rem;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+            margin-top: 4rem;
+            padding: 2rem;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .footer-text {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.875rem;
+        }
+        
+        .footer-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .footer-link:hover {
+            color: var(--primary);
+        }
+        
+        .data-source {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+        
+        .source-badge {
+            padding: 0.25rem 0.5rem;
+            background: var(--gray-100);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .protocols-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .protocol-metrics {
+                grid-template-columns: 1fr;
+            }
+            
+            .ps-value {
+                font-size: 2.5rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .header-actions,
+            .footer {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">₱</div>
+                <div class="logo-text">
+                    <h1>Crypto P/E</h1>
+                    <p>Protocol Revenue Analytics</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="update-badge">
+                    <span class="status-dot"></span>
+                    <span id="lastUpdate">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Loading State -->
+        <div id="loading" class="loading-container">
+            <div class="spinner"></div>
+            <p class="loading-text">Loading protocol data...</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div id="statsGrid" class="stats-grid" style="display: none;"></div>
+
+        <!-- Protocols Grid -->
+        <div id="protocolsGrid" class="protocols-grid" style="display: none;"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                © 2026 Crypto P/E • <strong>100% Free</strong> • No signup required
+            </div>
+            <div class="data-source">
+                <span>Data sources:</span>
+                <span class="source-badge">DefiLlama</span>
+                <span class="source-badge">CoinGecko</span>
+            </div>
+            <div class="footer-links">
+                <a href="https://github.com" class="footer-link" target="_blank">GitHub</a>
+                <a href="#" class="footer-link">Documentation</a>
+                <a href="#" class="footer-link">API</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let chartInstances = {};
+        
+        async function loadProtocolData() {
+            try {
+                const response = await fetch('protocol_data.json');
+                if (!response.ok) {
+                    throw new Error('Data file not found');
+                }
+                const data = await response.json();
+                
+                displayStats(data);
+                displayProtocols(data);
+                updateTimestamp(data);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('statsGrid').style.display = 'grid';
+                document.getElementById('protocolsGrid').style.display = 'grid';
+            } catch (error) {
+                document.getElementById('loading').innerHTML = `
+                    <div style="text-align: center; color: var(--gray-500);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--gray-700);">No Data Available</h2>
+                        <p style="margin-bottom: 1rem;">Run the tracker script to generate data</p>
+                        <code style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--gray-100); border-radius: 8px; color: var(--gray-700);">
+                            python3 crypto_pe_tracker_daily.py
+                        </code>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayStats(protocols) {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            const totalMarketCap = protocols.reduce((sum, p) => sum + (p.market_cap || 0), 0);
+            const totalRevenue = protocols.reduce((sum, p) => sum + (p.annual_revenue || 0), 0);
+            const validProtocols = protocols.filter(p => p.ps_circulating);
+            const avgPE = validProtocols.reduce((sum, p) => sum + p.ps_circulating, 0) / validProtocols.length;
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Total Market Cap</span>
+                        <div class="stat-icon blue">💰</div>
+                    </div>
+                    <div class="stat-value">$${formatLarge(totalMarketCap)}</div>
+                    <div class="stat-change">Across ${protocols.length} protocols</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Annual Revenue</span>
+                        <div class="stat-icon green">📈</div>
+                    </div>
+                    <div class="stat-value">$${formatLarge(totalRevenue)}</div>
+                    <div class="stat-change">Combined protocol fees</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Avg P/S Ratio</span>
+                        <div class="stat-icon orange">📊</div>
+                    </div>
+                    <div class="stat-value">${avgPE.toFixed(1)}x</div>
+                    <div class="stat-change">Market valuation</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Best Value</span>
+                        <div class="stat-icon purple">🎯</div>
+                    </div>
+                    <div class="stat-value">${getBestValue(protocols)}</div>
+                    <div class="stat-change">Lowest P/S ratio</div>
+                </div>
+            `;
+        }
+        
+        function displayProtocols(protocols) {
+            const grid = document.getElementById('protocolsGrid');
+            
+            protocols.sort((a, b) => {
+                const aRatio = a.ps_circulating || Infinity;
+                const bRatio = b.ps_circulating || Infinity;
+                return aRatio - bRatio;
+            });
+            
+            grid.innerHTML = protocols.map((protocol, index) => `
+                <div class="protocol-card">
+                    <div class="protocol-header">
+                        <div class="protocol-title">
+                            <div class="protocol-name">${protocol.name}</div>
+                            <div class="protocol-meta">
+                                <span class="chain-badge">${protocol.chain}</span>
+                                <span class="category-badge">${protocol.category}</span>
+                            </div>
+                        </div>
+                        <div class="valuation-badge ${getValuationClass(protocol.valuation)}">
+                            ${protocol.valuation}
+                        </div>
+                    </div>
+                    
+                    <div class="protocol-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Price</div>
+                            <div class="metric-value">$${formatNumber(protocol.price, 4)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Market Cap</div>
+                            <div class="metric-value">$${formatLarge(protocol.market_cap)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Revenue</div>
+                            <div class="metric-value">$${formatLarge(protocol.annual_revenue)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="ps-highlight">
+                        <div class="ps-label">Price-to-Sales Ratio</div>
+                        <div class="ps-value">${protocol.ps_circulating ? protocol.ps_circulating + 'x' : 'N/A'}</div>
+                    </div>
+                    
+                    <div class="chart-section">
+                        <div class="chart-header">
+                            <div class="chart-title">90-Day Historical Performance</div>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <span class="legend-dot price"></span>
+                                    <span>Price</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-dot ps"></span>
+                                    <span>P/S Ratio</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            ${protocol.historical && protocol.historical.length > 0 ? 
+                                `<canvas id="chart-${index}"></canvas>` : 
+                                `<div class="no-data">
+                                    <div class="no-data-icon">📈</div>
+                                    <div class="no-data-text">Historical data building...<br>Run daily to see trends</div>
+                                </div>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            setTimeout(() => {
+                protocols.forEach((protocol, index) => {
+                    if (protocol.historical && protocol.historical.length > 0) {
+                        createChart(protocol, index);
+                    }
+                });
+            }, 100);
+        }
+        
+        function createChart(protocol, index) {
+            const ctx = document.getElementById(`chart-${index}`);
+            if (!ctx) return;
+            
+            const historical = protocol.historical || [];
+            if (historical.length === 0) return;
+            
+            if (chartInstances[`chart-${index}`]) {
+                chartInstances[`chart-${index}`].destroy();
+            }
+            
+            const dates = historical.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            const prices = historical.map(d => d.price);
+            const peRatios = historical.map(d => d.ps_circulating);
+            
+            chartInstances[`chart-${index}`] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Price',
+                        data: prices,
+                        borderColor: 'rgb(37, 99, 235)',
+                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }, {
+                        label: 'P/S Ratio',
+                        data: peRatios,
+                        borderColor: 'rgb(139, 92, 246)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.05)',
+                        yAxisID: 'y1',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                            padding: 12,
+                            titleFont: { size: 13, weight: '600' },
+                            bodyFont: { size: 12 },
+                            borderColor: 'rgba(229, 231, 235, 0.2)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.yAxisID === 'y') {
+                                        label += '$' + context.parsed.y.toFixed(4);
+                                    } else {
+                                        label += context.parsed.y.toFixed(2) + 'x';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 6,
+                                font: { size: 11 },
+                                color: '#9ca3af'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: {
+                                color: 'rgba(229, 231, 235, 0.5)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { size: 11 },
+                                color: '#9ca3af',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { size: 11 },
+                                color: '#9ca3af',
+                                callback: function(value) {
+                                    return value.toFixed(0) + 'x';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function formatNumber(num, decimals = 2) {
+            if (!num) return '0.00';
+            return num.toLocaleString('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+        
+        function formatLarge(num) {
+            if (!num) return '$0';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+        
+        function getValuationClass(valuation) {
+            if (valuation.includes('Undervalued')) return 'undervalued';
+            if (valuation.includes('Fair')) return 'fair';
+            return 'expensive';
+        }
+        
+        function getBestValue(protocols) {
+            const sorted = protocols
+                .filter(p => p.ps_circulating)
+                .sort((a, b) => a.ps_circulating - b.ps_circulating);
+            return sorted.length > 0 ? sorted[0].name : 'N/A';
+        }
+        
+        function updateTimestamp(data) {
+            if (data.length > 0) {
+                const timestamp = new Date(data[0].timestamp);
+                const now = new Date();
+                const diff = Math.floor((now - timestamp) / 1000 / 60);
+                
+                let timeText;
+                if (diff < 1) timeText = 'Just now';
+                else if (diff < 60) timeText = `${diff}m ago`;
+                else if (diff < 1440) timeText = `${Math.floor(diff / 60)}h ago`;
+                else timeText = timestamp.toLocaleDateString();
+                
+                document.getElementById('lastUpdate').textContent = `Updated ${timeText}`;
+            }
+        }
+        
+        // Initial load
+        loadProtocolData();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(loadProtocolData, 300000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+[
+  {
+    "name": "Hyperliquid",
+    "chain": "Hyperliquid L1",
+    "category": "Derivatives",
+    "price": 26.35,
+    "market_cap": 6275561828,
+    "fdv": 25332139858,
+    "circulating_supply": 238385315.9541414,
+    "annual_revenue": 645360721.8333334,
+    "daily_revenue": 1298975,
+    "revenue_30d": 53043347,
+    "revenue_7d": 11123352,
+    "ps_circulating": 9.72,
+    "ps_fdv": 39.25,
+    "valuation": "Undervalued",
+    "timestamp": "2026-01-05T10:17:47.591588",
+    "historical": [
+      {
+        "date": "2026-01-05",
+        "price": 26.35,
+        "ps_circulating": 9.72,
+        "annual_revenue": 645360721.8333334,
+        "valuation": "Undervalued"
+      }
+    ]
+  },
+  {
+    "name": "Pump.fun",
+    "chain": "Solana",
+    "category": "Launchpad",
+    "price": 0.00222946,
+    "market_cap": 1318032134,
+    "fdv": 2233928724,
+    "circulating_supply": 590000000000.0,
+    "annual_revenue": 492000000,
+    "daily_revenue": 1347945.2054794522,
+    "revenue_30d": 40438356.16438357,
+    "revenue_7d": 9435616.438356165,
+    "ps_circulating": 2.68,
+    "ps_fdv": 4.54,
+    "valuation": "Undervalued",
+    "timestamp": "2026-01-05T10:17:50.158734",
+    "historical": [
+      {
+        "date": "2026-01-05",
+        "price": 0.00222946,
+        "ps_circulating": 2.68,
+        "annual_revenue": 492000000.0,
+        "valuation": "Undervalued"
+      }
+    ]
+  },
+  {
+    "name": "Ethena",
+    "chain": "Ethereum",
+    "category": "Stablecoin",
+    "price": 0.241108,
+    "market_cap": 1920808748,
+    "fdv": 3620609461,
+    "circulating_supply": 7957812500.0,
+    "annual_revenue": 542110.1666666666,
+    "daily_revenue": 1225,
+    "revenue_30d": 44557,
+    "revenue_7d": 11461,
+    "ps_circulating": 3543.21,
+    "ps_fdv": 6678.73,
+    "valuation": "Extremely overvalued",
+    "timestamp": "2026-01-05T10:17:53.738752",
+    "historical": [
+      {
+        "date": "2026-01-05",
+        "price": 0.241108,
+        "ps_circulating": 3543.21,
+        "annual_revenue": 542110.1666666666,
+        "valuation": "Extremely overvalued"
+      }
+    ]
+  },
+  {
+    "name": "Aave",
+    "chain": "Multi-chain",
+    "category": "Lending",
+    "price": 163.13,
+    "market_cap": 2476476294,
+    "fdv": 2610003397,
+    "circulating_supply": 15181444.11197338,
+    "annual_revenue": 87878422.0,
+    "daily_revenue": 246986,
+    "revenue_30d": 7222884,
+    "revenue_7d": 1654000,
+    "ps_circulating": 28.18,
+    "ps_fdv": 29.7,
+    "valuation": "Fair value",
+    "timestamp": "2026-01-05T10:17:57.802132",
+    "historical": [
+      {
+        "date": "2026-01-05",
+        "price": 163.13,
+        "ps_circulating": 28.18,
+        "annual_revenue": 87878422.0,
+        "valuation": "Fair value"
+      }
+    ]
+  },
+  {
+    "name": "MetaDAO",
+    "chain": "Solana",
+    "category": "DAO",
+    "price": 9408.7,
+    "market_cap": 0.0,
+    "fdv": 196429699,
+    "circulating_supply": 0.0,
+    "annual_revenue": 1731511.3333333335,
+    "daily_revenue": 3399,
+    "revenue_30d": 142316,
+    "revenue_7d": 17393,
+    "ps_circulating": 0.0,
+    "ps_fdv": 113.44,
+    "valuation": "Undervalued",
+    "timestamp": "2026-01-05T10:18:01.331126",
+    "historical": [
+      {
+        "date": "2026-01-05",
+        "price": 9408.7,
+        "ps_circulating": 0.0,
+        "annual_revenue": 1731511.3333333335,
+        "valuation": "Undervalued"
+      }
+    ]
+  }
+]
