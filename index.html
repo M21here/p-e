@@ -760,16 +760,20 @@
                 setTimeout(() => {
                     protocols.forEach((protocol, index) => {
                         if (protocol.historical && protocol.historical.length > 0) {
-                            createChart(protocol, index);
+                            // Pre-validate data before attempting to create chart
+                            const validData = protocol.historical.filter(d => d.price != null && d.ps_circulating != null);
+                            if (validData.length > 0) {
+                                createChart(protocol, index);
+                            }
                         }
                     });
-                }, 100);
+                }, 200);
             } catch (error) {
                 console.error('Error displaying protocols:', error);
                 grid.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--gray-500);">Error loading protocol data</div>';
             }
         }
-        
+
         function createChart(protocol, index) {
             try {
                 const ctx = document.getElementById(`chart-${index}`);
@@ -783,9 +787,30 @@
                     chartInstances[`chart-${index}`].destroy();
                 }
 
-                const dates = historical.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                const prices = historical.map(d => d.price || 0);
-                const peRatios = historical.map(d => d.ps_circulating || null);
+                // Filter out invalid data points
+                const validData = historical.filter(d => d.price != null && d.ps_circulating != null && d.date);
+                if (validData.length === 0) return;
+
+                // Parse dates defensively
+                const dates = validData.map(d => {
+                    try {
+                        return new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    } catch (e) {
+                        return d.date;
+                    }
+                });
+                const prices = validData.map(d => d.price);
+                const peRatios = validData.map(d => d.ps_circulating);
+
+                // Handle single data point - duplicate it so Chart.js can render
+                if (validData.length === 1) {
+                    const singleDate = dates[0];
+                    const singlePrice = prices[0];
+                    const singleRatio = peRatios[0];
+                    dates.push(singleDate);
+                    prices.push(singlePrice);
+                    peRatios.push(singleRatio);
+                }
             
             chartInstances[`chart-${index}`] = new Chart(ctx, {
                 type: 'line',
