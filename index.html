@@ -588,18 +588,33 @@
             try {
                 const response = await fetch('protocol_data.json');
                 if (!response.ok) {
-                    throw new Error('Data file not found');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const data = await response.json();
-                
+
+                const text = await response.text();
+                let data;
+
+                try {
+                    data = JSON.parse(text);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    throw new Error('Invalid JSON data');
+                }
+
+                // Validate data structure
+                if (!Array.isArray(data) || data.length === 0) {
+                    throw new Error('Invalid data format or empty data');
+                }
+
                 displayStats(data);
                 displayProtocols(data);
                 updateTimestamp(data);
-                
+
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('statsGrid').style.display = 'grid';
                 document.getElementById('protocolsGrid').style.display = 'grid';
             } catch (error) {
+                console.error('Error loading protocol data:', error);
                 document.getElementById('loading').innerHTML = `
                     <div style="text-align: center; color: var(--gray-500);">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
@@ -608,20 +623,26 @@
                         <code style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--gray-100); border-radius: 8px; color: var(--gray-700);">
                             python3 crypto_pe_tracker_daily.py
                         </code>
+                        <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--gray-400);">
+                            Error: ${error.message}
+                        </p>
                     </div>
                 `;
             }
         }
         
         function displayStats(protocols) {
-            const statsGrid = document.getElementById('statsGrid');
+            try {
+                const statsGrid = document.getElementById('statsGrid');
+
+                const totalMarketCap = protocols.reduce((sum, p) => sum + (p.market_cap || 0), 0);
+                const totalRevenue = protocols.reduce((sum, p) => sum + (p.annual_revenue || 0), 0);
+                const validProtocols = protocols.filter(p => p.ps_circulating);
+                const avgPE = validProtocols.length > 0
+                    ? validProtocols.reduce((sum, p) => sum + p.ps_circulating, 0) / validProtocols.length
+                    : 0;
             
-            const totalMarketCap = protocols.reduce((sum, p) => sum + (p.market_cap || 0), 0);
-            const totalRevenue = protocols.reduce((sum, p) => sum + (p.annual_revenue || 0), 0);
-            const validProtocols = protocols.filter(p => p.ps_circulating);
-            const avgPE = validProtocols.reduce((sum, p) => sum + p.ps_circulating, 0) / validProtocols.length;
-            
-            statsGrid.innerHTML = `
+                statsGrid.innerHTML = `
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-label">Total Market Cap</span>
@@ -630,7 +651,7 @@
                     <div class="stat-value">$${formatLarge(totalMarketCap)}</div>
                     <div class="stat-change">Across ${protocols.length} protocols</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-label">Annual Revenue</span>
@@ -639,16 +660,16 @@
                     <div class="stat-value">$${formatLarge(totalRevenue)}</div>
                     <div class="stat-change">Combined protocol fees</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-label">Avg P/S Ratio</span>
                         <div class="stat-icon orange">📊</div>
                     </div>
-                    <div class="stat-value">${avgPE.toFixed(1)}x</div>
+                    <div class="stat-value">${avgPE > 0 ? avgPE.toFixed(1) : 'N/A'}${avgPE > 0 ? 'x' : ''}</div>
                     <div class="stat-change">Market valuation</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-label">Best Value</span>
@@ -658,16 +679,20 @@
                     <div class="stat-change">Lowest P/S ratio</div>
                 </div>
             `;
+            } catch (error) {
+                console.error('Error displaying stats:', error);
+            }
         }
         
         function displayProtocols(protocols) {
-            const grid = document.getElementById('protocolsGrid');
-            
-            protocols.sort((a, b) => {
-                const aRatio = a.ps_circulating || Infinity;
-                const bRatio = b.ps_circulating || Infinity;
-                return aRatio - bRatio;
-            });
+            try {
+                const grid = document.getElementById('protocolsGrid');
+
+                protocols.sort((a, b) => {
+                    const aRatio = a.ps_circulating || Infinity;
+                    const bRatio = b.ps_circulating || Infinity;
+                    return aRatio - bRatio;
+                });
             
             grid.innerHTML = protocols.map((protocol, index) => `
                 <div class="protocol-card">
@@ -731,29 +756,36 @@
                 </div>
             `).join('');
             
-            setTimeout(() => {
-                protocols.forEach((protocol, index) => {
-                    if (protocol.historical && protocol.historical.length > 0) {
-                        createChart(protocol, index);
-                    }
-                });
-            }, 100);
+                // Delay chart rendering to prevent blocking UI
+                setTimeout(() => {
+                    protocols.forEach((protocol, index) => {
+                        if (protocol.historical && protocol.historical.length > 0) {
+                            createChart(protocol, index);
+                        }
+                    });
+                }, 100);
+            } catch (error) {
+                console.error('Error displaying protocols:', error);
+                grid.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--gray-500);">Error loading protocol data</div>';
+            }
         }
         
         function createChart(protocol, index) {
-            const ctx = document.getElementById(`chart-${index}`);
-            if (!ctx) return;
-            
-            const historical = protocol.historical || [];
-            if (historical.length === 0) return;
-            
-            if (chartInstances[`chart-${index}`]) {
-                chartInstances[`chart-${index}`].destroy();
-            }
-            
-            const dates = historical.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-            const prices = historical.map(d => d.price);
-            const peRatios = historical.map(d => d.ps_circulating);
+            try {
+                const ctx = document.getElementById(`chart-${index}`);
+                if (!ctx) return;
+
+                const historical = protocol.historical || [];
+                if (historical.length === 0) return;
+
+                // Cleanup existing chart instance to prevent memory leaks
+                if (chartInstances[`chart-${index}`]) {
+                    chartInstances[`chart-${index}`].destroy();
+                }
+
+                const dates = historical.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                const prices = historical.map(d => d.price || 0);
+                const peRatios = historical.map(d => d.ps_circulating || null);
             
             chartInstances[`chart-${index}`] = new Chart(ctx, {
                 type: 'line',
@@ -860,8 +892,15 @@
                             }
                         }
                     }
+                },
+                // Performance optimization
+                animation: {
+                    duration: 750
                 }
             });
+            } catch (error) {
+                console.error(`Error creating chart for ${protocol.name}:`, error);
+            }
         }
         
         function formatNumber(num, decimals = 2) {
