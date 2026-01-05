@@ -755,7 +755,7 @@
                     </div>
                 </div>
             `).join('');
-            
+
                 // Delay chart rendering to prevent blocking UI
                 setTimeout(() => {
                     protocols.forEach((protocol, index) => {
@@ -841,6 +841,9 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: validData.length === 1 ? 0 : 750
+                    },
                     interaction: {
                         mode: 'index',
                         intersect: false,
@@ -898,6 +901,16 @@
                                 callback: function(value) {
                                     return '$' + value.toFixed(2);
                                 }
+                            },
+                            min: function(context) {
+                                const values = context.chart.data.datasets[0].data;
+                                const min = Math.min(...values);
+                                return min * 0.95;
+                            },
+                            max: function(context) {
+                                const values = context.chart.data.datasets[0].data;
+                                const max = Math.max(...values);
+                                return max * 1.05;
                             }
                         },
                         y1: {
@@ -914,6 +927,16 @@
                                 callback: function(value) {
                                     return value.toFixed(0) + 'x';
                                 }
+                            },
+                            min: function(context) {
+                                const values = context.chart.data.datasets[1].data;
+                                const min = Math.min(...values);
+                                return min * 0.95;
+                            },
+                            max: function(context) {
+                                const values = context.chart.data.datasets[1].data;
+                                const max = Math.max(...values);
+                                return max * 1.05;
                             }
                         }
                     }
